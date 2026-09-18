@@ -108,7 +108,7 @@
                     
                     <div class="mt-8">
                         <input type="text" id="withdraw-upi" placeholder="Enter UPI ID for Withdrawal" class="w-full bg-gray-800 p-3 rounded-lg mb-4 text-center border border-gray-600">
-                        <input type="number" id="withdraw-amount" placeholder="Amount (Min ₹50)" class="w-full bg-gray-800 p-3 rounded-lg mb-4 text-center border border-gray-600">
+                        <input type="number" id="withdraw-amount" placeholder="Amount (Min ₹10)" class="w-full bg-gray-800 p-3 rounded-lg mb-4 text-center border border-gray-600">
                         <button id="btn-withdraw" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">Request Withdrawal</button>
                     </div>
                 </div>
@@ -503,7 +503,7 @@
             const upi = document.getElementById('withdraw-upi').value;
             const amount = parseInt(document.getElementById('withdraw-amount').value);
 
-            if(!upi || !amount || amount < 50) return Swal.fire('Error', 'Min withdrawal is ₹50 and UPI ID is required.', 'error');
+            if(!upi || !amount || amount < 10) return Swal.fire('Error', 'Min withdrawal is ₹10 and UPI ID is required.', 'error');
             if(amount > userData.wallet) return Swal.fire('Error', 'Insufficient Balance in your Wallet!', 'error');
 
             Swal.fire({ title: 'Processing Request...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
