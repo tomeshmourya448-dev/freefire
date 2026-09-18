@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF eSports Tournaments</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 for Pro Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .neon-text { text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative pb-20 md:pb-0">
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 px-4">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-md shadow-2xl shadow-blue-900/20">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-blue-400 neon-text"><i class="fa-solid fa-gamepad"></i> FF TOURNEY</h1>
+                <p class="text-gray-400 text-sm mt-2">Login or Create an Account</p>
+            </div>
+            
+            <div id="login-form">
+                <input type="email" id="log-email" placeholder="Email Address" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded-lg mb-4 focus:outline-none focus:border-blue-500 transition">
+                <input type="password" id="log-pass" placeholder="Password" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded-lg mb-6 focus:outline-none focus:border-blue-500 transition">
+                <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-blue-600/30">Login</button>
+                <p class="text-center mt-4 text-sm text-gray-400">New here? <span id="toggle-register" class="text-blue-400 cursor-pointer hover:underline">Register</span></p>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <input type="text" id="reg-name" placeholder="Full Name" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded-lg mb-3">
+                <input type="text" id="reg-ign" placeholder="In-Game Name (IGN)" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded-lg mb-3">
+                <input type="number" id="reg-uid" placeholder="Free Fire UID" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded-lg mb-3">
+                <input type="email" id="reg-email" placeholder="Email Address" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded-lg mb-3">
+                <input type="password" id="reg-pass" placeholder="Password" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded-lg mb-6">
+                <button id="btn-register" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-green-600/30">Create Account</button>
+                <p class="text-center mt-4 text-sm text-gray-400">Already have an account? <span id="toggle-login" class="text-blue-400 cursor-pointer hover:underline">Login</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="app-screen" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
+        
+        <!-- Top Navbar -->
+        <header class="glass-panel sticky top-0 z-40 px-6 py-4 flex justify-between items-center border-b border-gray-700">
+            <h1 class="text-2xl font-bold text-blue-400"><i class="fa-solid fa-crosshairs"></i> TOURNEY</h1>
+            <div class="flex items-center gap-4">
+                <div class="bg-gray-800 px-4 py-2 rounded-full border border-gray-600 flex items-center gap-2 cursor-pointer hover:bg-gray-700 transition" onclick="switchTab('wallet-tab')">
+                    <i class="fa-solid fa-wallet text-yellow-400"></i>
+                    <span class="font-bold text-white">₹<span id="nav-wallet">0</span></span>
+                </div>
+                <button id="btn-logout" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-right-from-bracket text-xl"></i></button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8">
+            
+            <!-- Tab: Tournaments -->
+            <section id="tournaments-tab" class="tab-content block">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Active Tournaments</h2>
+                        <p class="text-gray-400 text-sm">Join upcoming matches and win big!</p>
+                    </div>
+                </div>
+                <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards will be injected here via JS -->
+                </div>
+            </section>
+
+            <!-- Tab: My Matches -->
+            <section id="mymatches-tab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-white mb-6">My Bookings</h2>
+                <div id="my-matches-container" class="space-y-4">
+                    <!-- My Matches Injected Here -->
+                </div>
+            </section>
+
+            <!-- Tab: Leaderboard -->
+            <section id="leaderboard-tab" class="tab-content hidden">
+                <div class="glass-panel p-6 rounded-xl max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-bold text-yellow-400 mb-6 text-center"><i class="fa-solid fa-trophy"></i> Top Promoters</h2>
+                    <div id="leaderboard-container" class="space-y-3">
+                        <!-- Leaderboard Data -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Wallet -->
+            <section id="wallet-tab" class="tab-content hidden">
+                <div class="glass-panel p-6 rounded-xl max-w-md mx-auto text-center mt-10">
+                    <i class="fa-solid fa-wallet text-5xl text-yellow-400 mb-4"></i>
+                    <h2 class="text-gray-400">Total Winning Balance</h2>
+                    <h1 class="text-5xl font-bold text-white my-4">₹<span id="wallet-main-balance">0</span></h1>
+                    
+                    <div class="mt-8">
+                        <input type="text" id="withdraw-upi" placeholder="Enter UPI ID for Withdrawal" class="w-full bg-gray-800 p-3 rounded-lg mb-4 text-center border border-gray-600">
+                        <input type="number" id="withdraw-amount" placeholder="Amount (Min ₹50)" class="w-full bg-gray-800 p-3 rounded-lg mb-4 text-center border border-gray-600">
+                        <button id="btn-withdraw" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">Request Withdrawal</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="glass-panel fixed bottom-0 w-full md:w-auto md:relative md:bg-transparent border-t border-gray-700 md:border-none p-4 flex justify-around md:justify-center md:gap-8 z-40">
+            <button onclick="switchTab('tournaments-tab')" class="text-gray-400 hover:text-blue-400 flex flex-col items-center nav-btn">
+                <i class="fa-solid fa-gamepad text-xl mb-1"></i> <span class="text-xs">Play</span>
+            </button>
+            <button onclick="switchTab('mymatches-tab')" class="text-gray-400 hover:text-blue-400 flex flex-col items-center nav-btn">
+                <i class="fa-solid fa-list text-xl mb-1"></i> <span class="text-xs">My Matches</span>
+            </button>
+            <button onclick="switchTab('leaderboard-tab')" class="text-gray-400 hover:text-yellow-400 flex flex-col items-center nav-btn">
+                <i class="fa-solid fa-ranking-star text-xl mb-1"></i> <span class="text-xs">Top</span>
+            </button>
+            <button onclick="switchTab('wallet-tab')" class="text-gray-400 hover:text-green-400 flex flex-col items-center nav-btn">
+                <i class="fa-solid fa-wallet text-xl mb-1"></i> <span class="text-xs">Wallet</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Booking Modal (Custom) -->
+    <div id="booking-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 hidden px-4">
+        <div class="glass-panel p-6 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto border-t-4 border-t-blue-500">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-white">Book Slots</h2>
+                <button onclick="closeBookingModal()" class="text-red-500 text-xl hover:text-red-400"><i class="fa-solid fa-times"></i></button>
+            </div>
+            
+            <div id="step-1">
+                <p class="text-gray-300 mb-4 text-sm">How many slots do you want to book?</p>
+                <select id="slot-count" class="w-full bg-gray-800 p-3 rounded-lg text-white mb-4 border border-gray-600 outline-none">
+                    <option value="1">1 Slot (Solo)</option>
+                    <option value="2">2 Slots (Duo)</option>
+                    <option value="3">3 Slots</option>
+                    <option value="4">4 Slots (Squad)</option>
+                </select>
+                <button onclick="proceedToPayment()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold">Next Step</button>
+            </div>
+
+            <div id="step-2" class="hidden">
+                <div class="bg-gray-800 p-4 rounded-lg text-center mb-4 border border-gray-600">
+                    <p class="text-gray-400 text-sm">Amount to Pay</p>
+                    <h3 class="text-3xl font-bold text-green-400 my-2">₹<span id="pay-amount">0</span></h3>
+                    <p class="text-sm">Pay on UPI: <strong class="text-white bg-gray-700 px-2 py-1 rounded" id="pay-upi"></strong></p>
+                </div>
+                
+                <input type="text" id="pay-utr" placeholder="Enter 12-Digit UTR / Reference No." class="w-full bg-gray-700 p-3 rounded-lg mb-4 text-white border border-gray-500 outline-none">
+                
+                <div id="dynamic-players" class="space-y-4 mb-4 max-h-48 overflow-y-auto pr-2">
+                    <!-- Player inputs will be generated here -->
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="backToStep1()" class="w-1/3 bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">Back</button>
+                    <button onclick="submitBooking()" class="w-2/3 bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">Submit Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase JS SDK (Type Module) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        // IMPORTANT: REPLACE WITH YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+  apiKey: "AIzaSyCyxXPTVmwxj0b3DsAt_Ovl1u0_bTl8oP0",
+  authDomain: "hyper-sec.firebaseapp.com",
+  projectId: "hyper-sec",
+  storageBucket: "hyper-sec.firebasestorage.app",
+  messagingSenderId: "1095761457955",
+  appId: "1:1095761457955:web:c79641580ffc796d94d296"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let userData = null;
+        let currentBookingMatch = null;
+        let allMatchesCache = {};
+
+        // UI Toggles
+        document.getElementById('toggle-register').onclick = () => { document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); };
+        document.getElementById('toggle-login').onclick = () => { document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); };
+
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        };
+
+        // Authentication State & BLACKLIST CHECK
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                
+                // Realtime User Data Fetch
+                onValue(ref(db, 'users/' + user.uid), (snap) => {
+                    userData = snap.val();
+                    
+                    // Blacklist Defense Logic
+                    if(userData && userData.is_blacklisted) {
+                        Swal.fire({
+                            icon: 'error', 
+                            title: 'Account Suspended', 
+                            text: 'Your account has been banned by the Administrator for violating rules.',
+                            confirmButtonText: 'Exit', 
+                            allowOutsideClick: false
+                        }).then(() => { signOut(auth); });
+                        return; // Stop execution
+                    }
+
+                    if(userData) {
+                        document.getElementById('nav-wallet').innerText = userData.wallet || 0;
+                        document.getElementById('wallet-main-balance').innerText = userData.wallet || 0;
+                    }
+                });
+
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('flex');
+                
+                loadActiveMatches();
+                loadMyMatches();
+                loadLeaderboard();
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('flex');
+            }
+        });
+
+        // Registration
+        document.getElementById('btn-register').onclick = async () => {
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const name = document.getElementById('reg-name').value;
+            const ign = document.getElementById('reg-ign').value;
+            const uid = document.getElementById('reg-uid').value;
+            
+            if(!email || !pass || !name || !ign || !uid) return Swal.fire('Error', 'All fields are required!', 'error');
+
+            try {
+                Swal.fire({ title: 'Creating Account...', didOpen: () => Swal.showLoading() });
+                const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                await set(ref(db, 'users/' + cred.user.uid), {
+                    name: name, email: email, ign: ign, ff_uid: uid, 
+                    wallet: 0, total_slots_booked: 0, is_blacklisted: false
+                });
+                Swal.fire('Success', 'Account Created Successfully!', 'success');
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
+        };
+
+        // Login
+        document.getElementById('btn-login').onclick = async () => {
+            const email = document.getElementById('log-email').value;
+            const pass = document.getElementById('log-pass').value;
+            if(!email || !pass) return;
+            try { 
+                Swal.fire({ title: 'Logging in...', didOpen: () => Swal.showLoading() });
+                await signInWithEmailAndPassword(auth, email, pass); 
+                Swal.close();
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
+        };
+
+        // Logout
+        document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+        // Load Active Matches (With Advanced Rules UI)
+        function loadActiveMatches() {
+            onValue(ref(db, 'campaigns'), (snapshot) => {
+                const container = document.getElementById('matches-container');
+                container.innerHTML = '';
+                allMatchesCache = {}; // Reset cache
+
+                snapshot.forEach(child => {
+                    const m = child.val();
+                    allMatchesCache[child.key] = m; 
+
+                    if(m.status === 'Active' && m.slots_left > 0) {
+                        container.innerHTML += `
+                            <div class="glass-panel p-5 rounded-xl border-t-4 border-t-blue-500 hover:transform hover:scale-105 transition duration-300 relative">
+                                <!-- Match Type Badge -->
+                                <div class="absolute top-0 right-0 bg-blue-600 text-xs px-3 py-1 rounded-bl-lg font-bold shadow-lg">${m.type || 'Classic'}</div>
+                                
+                                <h3 class="text-xl font-bold text-white mt-2">${m.title}</h3>
+                                
+                                <div class="flex justify-between items-center mt-1 mb-4 border-b border-gray-700 pb-2">
+                                    <span class="bg-gray-800 text-xs px-2 py-1 rounded text-gray-300"><i class="fa-solid fa-users"></i> ${m.slots_left}/${m.slots_total} Slots</span>
+                                    <button onclick="showRules('${child.key}')" class="text-xs text-yellow-400 hover:underline"><i class="fa-solid fa-circle-info"></i> Rules & Info</button>
+                                </div>
+                                
+                                <div class="grid grid-cols-3 gap-2 my-4">
+                                    <div class="bg-gray-800/50 p-2 rounded text-center">
+                                        <p class="text-[10px] text-gray-400">Entry</p>
+                                        <p class="text-sm font-bold text-white">₹${m.entry_fee}</p>
+                                    </div>
+                                    <div class="bg-gray-800/50 p-2 rounded text-center border border-yellow-900/50">
+                                        <p class="text-[10px] text-gray-400">Per Kill</p>
+                                        <p class="text-sm font-bold text-yellow-400">₹${m.per_kill || 0}</p>
+                                    </div>
+                                    <div class="bg-gray-800/50 p-2 rounded text-center border border-green-900/50">
+                                        <p class="text-[10px] text-gray-400">Prize Pool</p>
+                                        <p class="text-sm font-bold text-green-400">₹${m.prize_pool}</p>
+                                    </div>
+                                </div>
+                                <button onclick="openBookingModal('${child.key}', ${m.entry_fee}, '${m.upi_id}')" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded-lg font-bold text-white shadow-lg">Join Tournament</button>
+                            </div>
+                        `;
+                    }
+                });
+            });
+        }
+
+        // Show Rules Modal
+        window.showRules = (matchId) => {
+            const match = allMatchesCache[matchId];
+            Swal.fire({
+                title: match.title + ' Rules',
+                html: `<div class="text-left text-sm whitespace-pre-line text-gray-300 bg-gray-800 p-4 rounded-lg border border-gray-600 mt-2">${match.rules || "No rules provided by Admin."}</div>`,
+                background: '#1e293b', 
+                color: '#fff', 
+                confirmButtonColor: '#3b82f6'
+            });
+        };
+
+        // Booking Modal Flow
+        window.openBookingModal = (matchId, entryFee, upiId) => {
+            currentBookingMatch = { id: matchId, fee: entryFee, upi: upiId };
+            document.getElementById('booking-modal').classList.remove('hidden');
+            document.getElementById('step-1').classList.remove('hidden');
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('pay-utr').value = '';
+        };
+        window.closeBookingModal = () => document.getElementById('booking-modal').classList.add('hidden');
+        window.backToStep1 = () => {
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-1').classList.remove('hidden');
+        };
+
+        window.proceedToPayment = () => {
+            const slots = document.getElementById('slot-count').value;
+            const total = slots * currentBookingMatch.fee;
+            
+            document.getElementById('pay-amount').innerText = total;
+            document.getElementById('pay-upi').innerText = currentBookingMatch.upi;
+            
+            // Dynamic Player Input Generation
+            const playerDiv = document.getElementById('dynamic-players');
+            playerDiv.innerHTML = '';
+            
+            for(let i=0; i<slots; i++) {
+                // Auto-fill first slot with current user data if available
+                let defIgn = (i === 0 && userData) ? userData.ign : '';
+                let defUid = (i === 0 && userData) ? userData.ff_uid : '';
+                
+                playerDiv.innerHTML += `
+                    <div class="bg-gray-800 p-3 rounded border border-gray-600">
+                        <p class="text-xs text-blue-400 font-bold mb-2">Player ${i+1}</p>
+                        <input type="text" id="p-ign-${i}" value="${defIgn}" placeholder="In-Game Name" class="w-full bg-gray-700 p-2 rounded text-white text-sm mb-2 outline-none">
+                        <input type="number" id="p-uid-${i}" value="${defUid}" placeholder="FF UID" class="w-full bg-gray-700 p-2 rounded text-white text-sm outline-none">
+                    </div>
+                `;
+            }
+
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+        };
+
+        window.submitBooking = async () => {
+            const slots = parseInt(document.getElementById('slot-count').value);
+            const utr = document.getElementById('pay-utr').value;
+            
+            if(!utr || utr.length < 5) return Swal.fire('Error', 'Please enter a valid UTR number.', 'error');
+
+            let players = [];
+            for(let i=0; i<slots; i++) {
+                const ign = document.getElementById(`p-ign-${i}`).value;
+                const uid = document.getElementById(`p-uid-${i}`).value;
+                if(!ign || !uid) return Swal.fire('Error', `Please fill details for Player ${i+1}`, 'error');
+                players.push({ ign, uid });
+            }
+
+            Swal.fire({ title: 'Submitting Details...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            try {
+                await set(push(ref(db, 'registrations')), {
+                    match_id: currentBookingMatch.id,
+                    user_id: currentUser.uid,
+                    slots: slots,
+                    total_paid: slots * currentBookingMatch.fee,
+                    utr: utr,
+                    players: players,
+                    status: 'Pending',
+                    timestamp: Date.now()
+                });
+                closeBookingModal();
+                Swal.fire('Success', 'Registration sent for Admin Approval!', 'success');
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
+        };
+
+        // Load User's Booked Matches (UPDATED FOR END MATCH)
+        function loadMyMatches() {
+            onValue(ref(db, 'registrations'), async (snapshot) => {
+                const container = document.getElementById('my-matches-container');
+                container.innerHTML = '';
+                
+                // Fetch campaigns to link Match Title & Room Info
+                const campaignsSnap = await get(ref(db, 'campaigns'));
+                const campaigns = campaignsSnap.val() || {};
+
+                snapshot.forEach(child => {
+                    const reg = child.val();
+                    if(reg.user_id === currentUser.uid) {
+                        const matchInfo = campaigns[reg.match_id] || { title: "Match Removed", status: "Ended" };
+                        
+                        let statusColor = reg.status === 'Pending' ? 'text-yellow-400' : (reg.status === 'Approved' ? 'text-green-400' : 'text-red-400');
+                        let roomUI = '';
+                        
+                        // Check if campaign is completed by Admin
+                        if(matchInfo.status === 'Completed') {
+                            roomUI = `
+                                <div class="mt-3 bg-red-900/50 p-3 rounded border border-red-700/50 text-center">
+                                    <p class="font-bold text-red-400 text-sm">Match Ended</p>
+                                    <p class="text-[10px] text-gray-400">Check Wallet for winnings</p>
+                                </div>
+                            `;
+                        } else if(reg.status === 'Approved') {
+                            const rid = matchInfo.room_id || 'Waiting for Admin...';
+                            const rpass = matchInfo.room_pass || 'Waiting...';
+                            roomUI = `
+                                <div class="mt-3 bg-gray-900 p-3 rounded border border-gray-700 flex justify-between items-center">
+                                    <div><p class="text-[10px] text-gray-500">Room ID</p><p class="font-bold text-blue-400 font-mono tracking-widest">${rid}</p></div>
+                                    <div class="text-right"><p class="text-[10px] text-gray-500">Password</p><p class="font-bold text-white font-mono">${rpass}</p></div>
+                                </div>
+                            `;
+                        }
+
+                        container.innerHTML += `
+                            <div class="glass-panel p-4 rounded-xl border-l-4 ${reg.status === 'Approved' ? 'border-l-green-500' : (reg.status === 'Rejected' ? 'border-l-red-500' : 'border-l-yellow-500')}">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-bold text-white text-lg">${matchInfo.title}</h3>
+                                    <span class="font-bold text-xs bg-gray-800 px-2 py-1 rounded ${statusColor}">${reg.status}</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2">Slots Booked: ${reg.slots} | Paid: ₹${reg.total_paid} | UTR: ${reg.utr}</p>
+                                ${roomUI}
+                            </div>
+                        `;
+                    }
+                });
+            });
+        }
+
+        // Leaderboard Logic
+        function loadLeaderboard() {
+            onValue(ref(db, 'users'), (snapshot) => {
+                let usersArr = [];
+                snapshot.forEach(child => {
+                    let u = child.val();
+                    if(u.total_slots_booked > 0) usersArr.push({ name: u.ign || u.name, slots: u.total_slots_booked });
+                });
+                
+                usersArr.sort((a,b) => b.slots - a.slots);
+                
+                const container = document.getElementById('leaderboard-container');
+                container.innerHTML = '';
+                
+                usersArr.slice(0, 10).forEach((u, index) => {
+                    let icon = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index+1}`));
+                    container.innerHTML += `
+                        <div class="flex justify-between items-center bg-gray-800 p-3 rounded-lg border border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl w-8 text-center font-bold text-gray-400">${icon}</span>
+                                <span class="font-bold text-white">${u.name}</span>
+                            </div>
+                            <span class="bg-blue-600 text-xs px-2 py-1 rounded text-white shadow-md">${u.slots} Slots</span>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // Withdrawal Request Processing
+        document.getElementById('btn-withdraw').onclick = async () => {
+            const upi = document.getElementById('withdraw-upi').value;
+            const amount = parseInt(document.getElementById('withdraw-amount').value);
+
+            if(!upi || !amount || amount < 50) return Swal.fire('Error', 'Min withdrawal is ₹50 and UPI ID is required.', 'error');
+            if(amount > userData.wallet) return Swal.fire('Error', 'Insufficient Balance in your Wallet!', 'error');
+
+            Swal.fire({ title: 'Processing Request...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            try {
+                await set(push(ref(db, 'withdrawals')), {
+                    user_id: currentUser.uid,
+                    amount: amount,
+                    upi_id: upi,
+                    status: 'Pending',
+                    timestamp: Date.now()
+                });
+                Swal.fire('Success', 'Withdrawal Request Submitted to Admin!', 'success');
+                document.getElementById('withdraw-amount').value = '';
+            } catch (error) { Swal.fire('Error', error.message, 'error'); }
+        };
+    </script>
+</body>
+</html>

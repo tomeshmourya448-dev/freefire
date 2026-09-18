@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Pro eSports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: sans-serif; background-color: #0f172a; color: #fff; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; padding: 1.5rem; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col hidden md:flex z-50">
+        <div class="p-6 text-center border-b border-gray-800">
+            <h1 class="text-2xl font-bold text-red-500"><i class="fa-solid fa-shield-halved"></i> COMMANDER</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="showSection('sec-users')" class="w-full text-left p-3 rounded hover:bg-gray-800 text-gray-300"><i class="fa-solid fa-users mr-2"></i> Users Data</button>
+            <button onclick="showSection('sec-create')" class="w-full text-left p-3 rounded hover:bg-gray-800 text-gray-300"><i class="fa-solid fa-plus mr-2"></i> Create Match</button>
+            <button onclick="showSection('sec-pending')" class="w-full text-left p-3 rounded hover:bg-gray-800 text-gray-300"><i class="fa-solid fa-clock-rotate-left mr-2"></i> Pending Regs</button>
+            <button onclick="showSection('sec-matches')" class="w-full text-left p-3 rounded hover:bg-gray-800 text-gray-300"><i class="fa-solid fa-gamepad mr-2"></i> Manage Matches</button>
+            <button onclick="showSection('sec-withdrawals')" class="w-full text-left p-3 rounded hover:bg-gray-800 text-gray-300"><i class="fa-solid fa-money-bill-transfer mr-2"></i> Withdrawals</button>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-10 relative">
+        
+        <!-- Section: User Management -->
+        <section id="sec-users" class="admin-section">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">User Management</h2>
+                <span class="bg-blue-600 px-4 py-2 rounded-lg font-bold">Total Users: <span id="total-users-count">0</span></span>
+            </div>
+            <div class="card overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-gray-700">
+                            <th class="pb-3">Name & IGN</th><th class="pb-3">UID</th><th class="pb-3">Wallet</th><th class="pb-3">Status</th><th class="pb-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section: Create Match -->
+        <section id="sec-create" class="admin-section hidden">
+            <h2 class="text-3xl font-bold mb-6">Deploy Tournament</h2>
+            <div class="card max-w-4xl">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="col-span-3">
+                        <label class="text-sm text-gray-400">Match Title (e.g. Daily Scrims #12)</label>
+                        <input type="text" id="m-title" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-400">Match Type</label>
+                        <select id="m-type" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none">
+                            <option value="Solo">Solo</option><option value="Duo">Duo</option>
+                            <option value="Squad">Squad (4v4)</option><option value="Clash Squad">Clash Squad</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-400">Entry Fee (₹)</label>
+                        <input type="number" id="m-fee" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-400">Per Kill Prize (₹)</label>
+                        <input type="number" id="m-perkill" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-400">Winning Prize Pool (₹)</label>
+                        <input type="number" id="m-prize" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-400">Total Slots Available</label>
+                        <input type="number" id="m-slots" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-sm text-gray-400">Receiving UPI ID</label>
+                        <input type="text" id="m-upi" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none">
+                    </div>
+                    <div class="col-span-3">
+                        <label class="text-sm text-gray-400">Tournament Rules & Guidelines</label>
+                        <textarea id="m-rules" rows="3" class="w-full bg-gray-800 p-3 rounded mt-1 border border-gray-600 outline-none"></textarea>
+                    </div>
+                </div>
+                <button id="btn-create-match" class="mt-6 w-full bg-red-600 hover:bg-red-700 py-3 rounded font-bold transition shadow-lg shadow-red-500/30">Launch Tournament</button>
+            </div>
+        </section>
+
+        <!-- Section: Pending Regs -->
+        <section id="sec-pending" class="admin-section hidden">
+            <h2 class="text-3xl font-bold mb-6">Pending Approvals</h2>
+            <div class="card overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-gray-700">
+                            <th class="pb-3">UTR No.</th><th class="pb-3">Slots/Paid</th><th class="pb-3">Players Details</th><th class="pb-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-table"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section: Manage Matches -->
+        <section id="sec-matches" class="admin-section hidden">
+            <h2 class="text-3xl font-bold mb-6">Active Match Controller</h2>
+            <div id="manage-matches-container" class="grid grid-cols-1 xl:grid-cols-2 gap-6"></div>
+        </section>
+
+        <!-- Section: Withdrawals -->
+        <section id="sec-withdrawals" class="admin-section hidden">
+            <h2 class="text-3xl font-bold mb-6">Withdrawal Requests</h2>
+            <div class="card"><table class="w-full text-left text-sm"><tbody id="withdrawals-table"></tbody></table></div>
+        </section>
+
+        <!-- Participant Management Modal -->
+        <div id="participants-modal" class="fixed inset-0 z-50 flex justify-end bg-black/80 hidden">
+            <div class="bg-gray-900 w-full md:w-1/2 h-full p-6 overflow-y-auto border-l border-gray-700 shadow-2xl">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                    <h2 class="text-2xl font-bold text-yellow-400">Match Participants & Payouts</h2>
+                    <button onclick="closeParticipantsModal()" class="text-red-500 hover:text-red-400 text-2xl"><i class="fa-solid fa-times"></i></button>
+                </div>
+                <div id="participants-list-container" class="space-y-4"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase System -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyCyxXPTVmwxj0b3DsAt_Ovl1u0_bTl8oP0",
+  authDomain: "hyper-sec.firebaseapp.com",
+  projectId: "hyper-sec",
+  storageBucket: "hyper-sec.firebasestorage.app",
+  messagingSenderId: "1095761457955",
+  appId: "1:1095761457955:web:c79641580ffc796d94d296"
+};
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.showSection = (secId) => {
+            document.querySelectorAll('.admin-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(secId).classList.remove('hidden');
+        };
+
+        // 1. User Management
+        onValue(ref(db, 'users'), (snapshot) => {
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = '';
+            let count = 0;
+            snapshot.forEach(child => {
+                count++;
+                const u = child.val();
+                const statusHTML = u.is_blacklisted 
+                    ? `<span class="bg-red-900 text-red-300 px-2 py-1 rounded text-xs font-bold">Blacklisted</span>` 
+                    : `<span class="bg-green-900 text-green-300 px-2 py-1 rounded text-xs font-bold">Active</span>`;
+                const btnAction = u.is_blacklisted 
+                    ? `<button onclick="toggleBlacklist('${child.key}', false)" class="text-green-500 hover:underline mr-3 text-xs">Unban</button>`
+                    : `<button onclick="toggleBlacklist('${child.key}', true)" class="text-red-500 hover:underline mr-3 text-xs">Ban</button>`;
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-800">
+                        <td class="py-3"><strong>${u.name}</strong><br><span class="text-xs text-gray-500">IGN: ${u.ign}</span></td>
+                        <td class="font-mono text-gray-400">${u.ff_uid}</td>
+                        <td class="text-yellow-400 font-bold">₹${u.wallet || 0}</td>
+                        <td>${statusHTML}</td>
+                        <td>
+                            <button onclick="editUser('${child.key}', '${u.ign}', '${u.ff_uid}', ${u.wallet || 0})" class="text-blue-400 hover:underline mr-3 text-xs">Edit</button>
+                            ${btnAction}
+                        </td>
+                    </tr>`;
+            });
+            document.getElementById('total-users-count').innerText = count;
+        });
+
+        window.toggleBlacklist = async (uid, status) => {
+            if(confirm(`Are you sure you want to ${status ? 'Ban' : 'Unban'} this user?`)) {
+                await update(ref(db, `users/${uid}`), { is_blacklisted: status });
+                Swal.fire('Updated!', `User status changed.`, 'success');
+            }
+        };
+
+        window.editUser = async (uid, currentIgn, currentUid, currentWallet) => {
+            const { value: formValues } = await Swal.fire({
+                title: 'Edit User Data',
+                html: `<label class="text-sm">IGN</label><input id="e-ign" class="swal2-input" value="${currentIgn}">
+                       <label class="text-sm">FF UID</label><input id="e-uid" class="swal2-input" value="${currentUid}">
+                       <label class="text-sm">Wallet Balance (₹)</label><input id="e-wallet" type="number" class="swal2-input" value="${currentWallet}">`,
+                focusConfirm: false,
+                preConfirm: () => ({
+                    ign: document.getElementById('e-ign').value,
+                    ff_uid: document.getElementById('e-uid').value,
+                    wallet: parseInt(document.getElementById('e-wallet').value) || 0
+                })
+            });
+            if (formValues) {
+                await update(ref(db, `users/${uid}`), formValues);
+                Swal.fire('Saved!', 'User data updated.', 'success');
+            }
+        };
+
+        // 2. Create Match
+        document.getElementById('btn-create-match').onclick = async () => {
+            const data = {
+                title: document.getElementById('m-title').value,
+                type: document.getElementById('m-type').value,
+                entry_fee: parseInt(document.getElementById('m-fee').value) || 0,
+                per_kill: parseInt(document.getElementById('m-perkill').value) || 0,
+                prize_pool: parseInt(document.getElementById('m-prize').value) || 0,
+                slots_total: parseInt(document.getElementById('m-slots').value) || 0,
+                slots_left: parseInt(document.getElementById('m-slots').value) || 0,
+                upi_id: document.getElementById('m-upi').value,
+                rules: document.getElementById('m-rules').value || "No special rules specified.",
+                status: 'Active', room_id: '', room_pass: '', created_at: Date.now()
+            };
+            if(!data.title || !data.entry_fee || !data.slots_total || !data.upi_id) return Swal.fire('Error', 'Fill essential fields!', 'error');
+            Swal.fire({ title: 'Deploying...', didOpen: () => Swal.showLoading() });
+            try {
+                await set(push(ref(db, 'campaigns')), data);
+                Swal.fire('Success', 'Match Created & Live!', 'success');
+                document.querySelectorAll('#sec-create input, #sec-create textarea').forEach(i => i.value = '');
+            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+        };
+
+        // 3. Pending Regs
+        onValue(ref(db, 'registrations'), (snapshot) => {
+            const tbody = document.getElementById('pending-table');
+            tbody.innerHTML = '';
+            snapshot.forEach(child => {
+                const reg = child.val();
+                if(reg.status === 'Pending') {
+                    let playersHTML = reg.players.map(p => `<span class="bg-gray-800 px-1 rounded">${p.ign} (${p.uid})</span>`).join(', ');
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-800">
+                            <td class="py-3 font-mono text-yellow-400">${reg.utr}</td>
+                            <td>${reg.slots} <br> <span class="text-green-400">₹${reg.total_paid}</span></td>
+                            <td class="text-xs leading-loose">${playersHTML}</td>
+                            <td>
+                                <button onclick="approveReg('${child.key}', '${reg.match_id}', '${reg.user_id}', ${reg.slots})" class="bg-green-600 px-2 py-1 rounded text-xs mb-1 w-full hover:bg-green-500">Approve</button>
+                                <button onclick="rejectReg('${child.key}')" class="bg-red-600 px-2 py-1 rounded text-xs w-full hover:bg-red-500">Reject</button>
+                            </td>
+                        </tr>`;
+                }
+            });
+        });
+
+        window.approveReg = async (regId, matchId, userId, slotsCount) => {
+            await update(ref(db, `registrations/${regId}`), { status: 'Approved' });
+            const mSnap = await get(ref(db, `campaigns/${matchId}`));
+            await update(ref(db, `campaigns/${matchId}`), { slots_left: mSnap.val().slots_left - slotsCount });
+            const uSnap = await get(ref(db, `users/${userId}`));
+            let prevBooked = parseInt(uSnap.val().total_slots_booked) || 0;
+            await update(ref(db, `users/${userId}`), { total_slots_booked: prevBooked + slotsCount });
+            Swal.fire('Approved!', 'Slots confirmed.', 'success');
+        };
+        window.rejectReg = async (regId) => { await update(ref(db, `registrations/${regId}`), { status: 'Rejected' }); };
+
+        // 4. Match Controller & Bug Fixes
+        let currentMatchesData = {};
+        onValue(ref(db, 'campaigns'), (snapshot) => {
+            const container = document.getElementById('manage-matches-container');
+            container.innerHTML = '';
+            currentMatchesData = {};
+            snapshot.forEach(child => {
+                const m = child.val();
+                currentMatchesData[child.key] = m; 
+                if(m.status === 'Active') {
+                    container.innerHTML += `
+                        <div class="card relative border-t-4 border-blue-500">
+                            <div class="absolute top-2 right-2 text-xs bg-gray-700 px-2 py-1 rounded font-bold">${m.type}</div>
+                            <h3 class="text-xl font-bold mb-1">${m.title}</h3>
+                            <p class="text-xs text-gray-400 mb-3">Slots: ${m.slots_left}/${m.slots_total} | Per Kill: ₹${m.per_kill || 0}</p>
+                            
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" id="rid-${child.key}" value="${m.room_id || ''}" placeholder="Room ID" class="w-1/2 bg-gray-800 p-2 text-sm rounded border border-gray-600 outline-none">
+                                <input type="text" id="rpass-${child.key}" value="${m.room_pass || ''}" placeholder="Password" class="w-1/2 bg-gray-800 p-2 text-sm rounded border border-gray-600 outline-none">
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <button onclick="updateRoom('${child.key}')" class="flex-1 bg-blue-600 py-2 rounded text-xs font-bold hover:bg-blue-700 shadow">Update Details</button>
+                                <button onclick="openParticipants('${child.key}')" class="flex-1 bg-yellow-600 py-2 rounded text-xs font-bold hover:bg-yellow-700 text-black shadow">Participants</button>
+                                <button onclick="endMatch('${child.key}')" class="flex-1 bg-red-600 py-2 rounded text-xs font-bold hover:bg-red-700 shadow">End Match</button>
+                            </div>
+                        </div>`;
+                }
+            });
+        });
+
+        window.updateRoom = async (matchId) => {
+            await update(ref(db, `campaigns/${matchId}`), { 
+                room_id: document.getElementById(`rid-${matchId}`).value, 
+                room_pass: document.getElementById(`rpass-${matchId}`).value 
+            });
+            Swal.fire('Updated', 'Room details pushed to users.', 'success');
+        };
+
+        // NEW FEATURE: End Match
+        window.endMatch = async (matchId) => {
+            if(confirm('Are you sure you want to END this match? It will be removed from Active Matches.')) {
+                try {
+                    await update(ref(db, `campaigns/${matchId}`), { status: 'Completed' });
+                    Swal.fire('Ended', 'Match has been marked as Completed.', 'success');
+                } catch(e) { Swal.fire('Error', e.message, 'error'); }
+            }
+        };
+
+        window.openParticipants = async (matchId) => {
+            const matchData = currentMatchesData[matchId];
+            document.getElementById('participants-modal').classList.remove('hidden');
+            const container = document.getElementById('participants-list-container');
+            container.innerHTML = '<p class="text-center text-gray-400">Loading participants...</p>';
+
+            const regsSnap = await get(ref(db, 'registrations'));
+            container.innerHTML = '';
+            let found = false;
+
+            regsSnap.forEach(child => {
+                const reg = child.val();
+                if(reg.match_id === matchId && reg.status === 'Approved') {
+                    found = true;
+                    let playersStr = reg.players.map(p => p.ign).join(', ');
+                    
+                    container.innerHTML += `
+                        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="text-[10px] text-gray-400">Booked by ID: <span class="font-mono text-gray-300">${reg.user_id}</span></p>
+                                    <p class="font-bold text-white mt-1">Squad/Players: <span class="text-blue-400">${playersStr}</span></p>
+                                </div>
+                                <span class="bg-gray-700 text-xs px-2 py-1 rounded border border-gray-600">Slots: ${reg.slots}</span>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 mt-4 bg-gray-900 p-2 rounded">
+                                <input type="number" id="kills-${child.key}" placeholder="Total Kills" class="w-1/3 bg-gray-700 p-2 rounded text-sm outline-none">
+                                <input type="number" id="rankprize-${child.key}" placeholder="Extra Winning (₹)" class="w-1/3 bg-gray-700 p-2 rounded text-sm outline-none">
+                                <button onclick="distributePrize('${reg.user_id}', '${child.key}', ${matchData.per_kill || 0})" class="w-1/3 bg-green-600 text-white font-bold py-2 rounded text-sm hover:bg-green-700 shadow-md">Pay to Wallet</button>
+                            </div>
+                        </div>`;
+                }
+            });
+            if(!found) container.innerHTML = '<p class="text-center text-red-400">No approved participants found yet.</p>';
+        };
+        window.closeParticipantsModal = () => document.getElementById('participants-modal').classList.add('hidden');
+
+        // ERROR FIXED HERE (Added strict parseInt validation to prevent NaN)
+        window.distributePrize = async (userId, regKey, perKillRate) => {
+            const kills = parseInt(document.getElementById(`kills-${regKey}`).value) || 0;
+            const extraPrize = parseInt(document.getElementById(`rankprize-${regKey}`).value) || 0;
+            const rate = parseInt(perKillRate) || 0; 
+            const totalPayout = (kills * rate) + extraPrize;
+
+            if(totalPayout <= 0) return Swal.fire('Error', 'Total payout cannot be zero.', 'error');
+
+            if(confirm(`Confirm paying ₹${totalPayout} to this user's wallet?\n(Kills: ${kills} x ₹${rate}) + Prize: ₹${extraPrize}`)) {
+                try {
+                    const snap = await get(ref(db, `users/${userId}`));
+                    // STRICT PARSING FOR WALLET BALANCE TO PREVENT NaN
+                    let currentBal = parseInt(snap.val().wallet) || 0; 
+                    
+                    await update(ref(db, `users/${userId}`), { wallet: currentBal + totalPayout });
+                    
+                    Swal.fire('Paid!', `₹${totalPayout} added to wallet successfully.`, 'success');
+                    document.getElementById(`kills-${regKey}`).value = '';
+                    document.getElementById(`rankprize-${regKey}`).value = '';
+                } catch(e) { Swal.fire('Error', e.message, 'error'); }
+            }
+        };
+
+        // 5. Withdrawals
+        onValue(ref(db, 'withdrawals'), (snapshot) => {
+            const tbody = document.getElementById('withdrawals-table');
+            tbody.innerHTML = '';
+            snapshot.forEach(child => {
+                const req = child.val();
+                if(req.status === 'Pending') {
+                    tbody.innerHTML += `
+                        <tr class="border-b border-gray-800">
+                            <td class="py-3 text-xs font-mono">${req.user_id}</td>
+                            <td class="text-red-400 font-bold">₹${req.amount}</td>
+                            <td class="text-blue-400">${req.upi_id}</td>
+                            <td><button onclick="completeWithdrawal('${child.key}', '${req.user_id}', ${req.amount})" class="bg-green-600 px-3 py-1 rounded text-sm hover:bg-green-500 shadow">Mark Paid</button></td>
+                        </tr>`;
+                }
+            });
+        });
+        window.completeWithdrawal = async (reqId, userId, amount) => {
+            const snap = await get(ref(db, `users/${userId}`));
+            let currentBal = parseInt(snap.val().wallet) || 0;
+            await update(ref(db, `users/${userId}`), { wallet: currentBal - amount });
+            await update(ref(db, `withdrawals/${reqId}`), { status: 'Completed' });
+            Swal.fire('Done', 'Withdrawal paid.', 'success');
+        };
+    </script>
+</body>
+</html>
